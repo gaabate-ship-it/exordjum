@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exordjum — Scheda Clinica</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Montserrat', sans-serif; background: #0b0c0e; color: #e8e4db; font-size: 13px; min-height: 100vh; }
+.shell { display: grid; grid-template-columns: 200px 1fr; grid-template-rows: 52px 1fr; min-height: 100vh; }
+.topbar { grid-column: 1/-1; background: #111316; border-bottom: 1px solid #1e2229; display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+.brand { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; color: #c9a84c; letter-spacing: .1em; text-transform: uppercase; }
+.topbar-btns { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.btn { font-size: 11px; font-weight: 600; letter-spacing: .06em; padding: 5px 12px; border-radius: 3px; cursor: pointer; border: 1px solid #9a7a34; background: transparent; color: #c9a84c; }
+.btn:hover { background: rgba(201,168,76,.1); }
+.btn.primary { background: #c9a84c; color: #000; border-color: #c9a84c; }
+.btn.primary:hover { background: #dbb95a; }
+.saved-msg { font-size: 11px; color: #5ba88a; opacity: 0; transition: opacity .3s; }
+.sidebar { background: #111316; border-right: 1px solid #1e2229; padding: 16px 0; overflow-y: auto; }
+.nav-group { font-size: 9px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #6e7480; padding: 10px 16px 4px; margin-top: 6px; }
+.nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 16px; cursor: pointer; color: #9ca3af; font-size: 12px; border-left: 2px solid transparent; }
+.nav-link:hover { background: rgba(201,168,76,.06); color: #e8e4db; }
+.nav-link.on { color: #c9a84c; border-left-color: #c9a84c; background: rgba(201,168,76,.06); }
+.dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.main { overflow-y: auto; padding: 24px 28px; background: #0b0c0e; }
+.page { display: none; }
+.page.on { display: block; }
+.pbar { background: #111316; border: 1px solid #1e2229; border-radius: 6px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 20px; border-left: 3px solid #c9a84c; }
+.pbar-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #e8e4db; flex: 1; }
+.pbar-meta { font-size: 11px; color: #6e7480; }
+.pbar-code { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9a7a34; background: rgba(201,168,76,.06); padding: 3px 8px; border-radius: 2px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.card { background: #111316; border: 1px solid #1e2229; border-radius: 6px; overflow: hidden; margin-bottom: 14px; }
+.card-head { background: #171a1f; border-bottom: 1px solid #1e2229; padding: 10px 16px; font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #c9a84c; }
+.card-body { padding: 14px 16px; }
+.frow { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px 14px; margin-bottom: 10px; }
+.field { display: flex; flex-direction: column; gap: 3px; }
+.flabel { font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6e7480; margin-bottom: 2px; }
+input[type=text], input[type=number], input[type=date], select, textarea {
+  background: #0b0c0e; border: 1px solid #2a3040; border-radius: 3px; color: #e8e4db;
+  font-family: 'Montserrat', sans-serif; font-size: 13px; padding: 6px 8px; width: 100%; outline: none;
+}
+input[type=text]:focus, input[type=number]:focus, input[type=date]:focus, select:focus, textarea:focus { border-color: #c9a84c; }
+input::placeholder, textarea::placeholder { color: #4a5060; }
+select option { background: #171a1f; }
+textarea { resize: vertical; min-height: 140px; line-height: 1.7; }
+.mono { font-family: 'JetBrains Mono', monospace !important; font-size: 12px !important; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.chk { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 8px; border: 1px solid #1e2229; border-radius: 3px; background: #0b0c0e; user-select: none; }
+.chk:hover { border-color: #9a7a34; }
+.chk.on { border-color: #c9a84c; background: rgba(201,168,76,.08); color: #c9a84c; }
+.chk-icon { width: 11px; height: 11px; border: 1px solid #4a5060; border-radius: 2px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 8px; font-weight: 700; }
+.chk.on .chk-icon { background: #c9a84c; border-color: #c9a84c; color: #000; }
+.chk-txt { font-size: 11px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.chip { font-size: 11px; padding: 4px 10px; border-radius: 3px; border: 1px solid #1e2229; background: #0b0c0e; color: #6e7480; cursor: pointer; user-select: none; }
+.chip:hover { border-color: #9a7a34; color: #e8e4db; }
+.chip.on { border-color: #c9a84c; background: rgba(201,168,76,.08); color: #c9a84c; }
+.vitals { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
+.vital { background: #0b0c0e; border: 1px solid #1e2229; border-radius: 4px; padding: 10px 8px; text-align: center; }
+.vital input { background: transparent; border: none; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; color: #e8e4db; width: 100%; text-align: center; padding: 0; }
+.vital input:focus { color: #c9a84c; }
+.vital input::placeholder { color: #4a5060; font-size: 13px; }
+.vital-unit { font-size: 9px; color: #6e7480; margin-top: 2px; }
+.vital-name { font-size: 9px; font-weight: 600; color: #6e7480; text-transform: uppercase; letter-spacing: .08em; margin-top: 4px; }
+hr { border: none; border-top: 1px solid #1e2229; margin: 10px 0; }
+.ptitle { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 300; color: #e8e4db; margin-bottom: 18px; }
+.ptitle small { font-size: 12px; color: #6e7480; font-family: 'Montserrat', sans-serif; margin-left: 10px; }
+.rpanel { position: fixed; top: 52px; right: 0; bottom: 0; width: 400px; background: #111316; border-left: 1px solid #1e2229; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .3s ease; z-index: 500; }
+.rpanel.on { transform: translateX(0); }
+.rpanel-head { padding: 14px 16px; border-bottom: 1px solid #1e2229; background: #171a1f; display: flex; align-items: center; gap: 10px; }
+.rpanel-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #c9a84c; flex: 1; }
+.rpanel-acts { padding: 10px 16px; border-bottom: 1px solid #1e2229; display: flex; gap: 8px; }
+.rpanel-body { flex: 1; overflow-y: auto; padding: 16px; }
+.spin-wrap { display: none; flex-direction: column; align-items: center; justify-content: center; height: 160px; gap: 12px; }
+.spin-wrap.on { display: flex; }
+.spinner { width: 28px; height: 28px; border: 2px solid #1e2229; border-top-color: #c9a84c; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin-txt { font-size: 12px; color: #6e7480; font-style: italic; }
+.rtext { display: none; font-size: 13px; line-height: 1.8; color: #e8e4db; }
+.rtext.on { display: block; }
+.rtext h2 { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #c9a84c; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid #1e2229; }
+.rtext h3 { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6e7480; margin: 12px 0 4px; }
+.rtext p { color: #9ca3af; margin-bottom: 6px; }
+.rtext strong { color: #e8e4db; }
+.rtext ul { margin: 4px 0 8px 16px; color: #9ca3af; }
+.rtext li { margin-bottom: 2px; }
+.rempty { color: #6e7480; font-size: 12px; font-style: italic; text-align: center; margin-top: 50px; }
+@media print { .shell, .rpanel { display: none !important; } #printzone { display: block !important; } }
+#printzone { display: none; font-family: 'Montserrat', sans-serif; font-size: 13px; color: #333; padding: 40px; max-width: 800px; margin: 0 auto; }
+#printzone .ph { text-align: center; border-bottom: 2px solid #c9a84c; padding-bottom: 14px; margin-bottom: 24px; }
+#printzone .pbrand { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: #c9a84c; letter-spacing: .1em; text-transform: uppercase; }
+#printzone h2 { font-size: 16px; color: #333; margin: 18px 0 6px; border-bottom: 1px solid #ddd; padding-bottom: 3px; }
+#printzone h3 { font-size: 10px; text-transform: uppercase; color: #888; margin: 10px 0 3px; letter-spacing: .08em; }
+#printzone p, #printzone li { font-size: 13px; color: #444; line-height: 1.7; }
+#printzone ul { margin-left: 16px; }
+#printzone .pfoot { margin-top: 40px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 11px; color: #aaa; text-align: center; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0b0c0e; }
+::-webkit-scrollbar-thumb { background: #1e2229; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="topbar">
+  <div class="brand">Exordjum</div>
+  <div style="font-size:11px;color:#6e7480;letter-spacing:.06em;text-transform:uppercase">Scheda Clinica</div>
+  <div class="topbar-btns">
+    <button class="btn" onclick="nuovoPaz()">+ Nuovo</button>
+    <button class="btn" onclick="salva()">Salva</button>
+    <button class="btn primary" onclick="toggleReport()">⚕ Report AI</button>
+    <span class="saved-msg" id="saved-msg">✓ Salvato</span>
+  </div>
+</div>
+<nav class="sidebar">
+  <div class="nav-group">Scheda</div>
+  <div class="nav-link on" onclick="showPage('p-anagrafica',this)"><div class="dot"></div>Anagrafica</div>
+  <div class="nav-link" onclick="showPage('p-rischio',this)"><div class="dot"></div>Fattori di Rischio</div>
+  <div class="nav-link" onclick="showPage('p-metabolico',this)"><div class="dot"></div>Profilo Metabolico</div>
+  <div class="nav-link" onclick="showPage('p-comorbidita',this)"><div class="dot"></div>Comorbidità</div>
+  <div class="nav-link" onclick="showPage('p-terapie',this)"><div class="dot"></div>Terapie & Allergie</div>
+  <div class="nav-group">Diagnostica</div>
+  <div class="nav-link" onclick="showPage('p-vitali',this)"><div class="dot"></div>Vitali & Lab</div>
+  <div class="nav-group">Follow-up</div>
+  <div class="nav-link" onclick="showPage('p-followup',this)"><div class="dot"></div>Follow-up 12 mesi</div>
+</nav>
+<main class="main">
+<div class="pbar">
+  <div><div class="pbar-name" id="hdr-nome">— Nuovo Paziente —</div><div class="pbar-meta" id="hdr-meta">Età — · Sesso — · BMI —</div></div>
+  <div class="pbar-code" id="hdr-code">EXO-</div>
+</div>
+
+<!-- ANAGRAFICA -->
+<div class="page on" id="p-anagrafica">
+  <div class="ptitle">Anagrafica & Motivo Visita <small>Sez. 1</small></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Dati Anagrafici</div>
+      <div class="card-body">
+        <div class="field" style="margin-bottom:10px"><div class="flabel">Cognome e Nome</div><input type="text" id="f-nome" placeholder="Rossi Mario" oninput="aggH()"></div>
+        <div class="field" style="margin-bottom:10px"><div class="flabel">Codice Paziente</div><input type="text" id="f-codice" class="mono" placeholder="EXO-2025-001" oninput="aggH()"></div>
+        <div class="frow">
+          <div class="field"><div class="flabel">Data nascita</div><input type="date" id="f-nascita" oninput="calcEta()"></div>
+          <div class="field"><div class="flabel">Sesso</div><select id="f-sesso" onchange="aggH()"><option value="">—</option><option>M</option><option>F</option></select></div>
+          <div class="field"><div class="flabel">Altezza cm</div><input type="number" id="f-altezza" class="mono" placeholder="175" oninput="calcBMI()"></div>
+          <div class="field"><div class="flabel">Peso kg</div><input type="number" id="f-peso" class="mono" placeholder="75" oninput="calcBMI()"></div>
+          <div class="field"><div class="flabel">BMI</div><input type="text" id="f-bmi" class="mono" readonly style="color:#c9a84c"></div>
+          <div class="field"><div class="flabel">BSA m²</div><input type="text" id="f-bsa" class="mono" readonly style="color:#9a7a34"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Motivo della Visita</div>
+      <div class="card-body">
+        <div class="frow">
+          <div class="field" style="grid-column:span 2"><div class="flabel">Tipo visita</div><select id="f-visita"><option value="">— seleziona —</option><option>Prima visita con sintomi</option><option>Prima visita senza sintomi</option><option>Follow-up</option></select></div>
+          <div class="field"><div class="flabel">Esordio</div><select id="f-esordio"><option value="">—</option><option>Acuto</option><option>Subacuto</option><option>Cronico</option></select></div>
+          <div class="field"><div class="flabel">Andamento</div><select id="f-andamento"><option value="">—</option><option>Stabile</option><option>Ingravescente</option><option>Intermittente</option></select></div>
+        </div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Sintomi</div>
+        <div class="chips" id="chips-sintomi">
+          <div class="chip" onclick="this.classList.toggle('on')">Dolore toracico</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Dispnea</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Palpitazioni</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Sincope</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Edemi</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Tosse</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Astenia</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Altro</div>
+        </div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Fattori scatenanti</div>
+        <div class="chips" id="chips-scatenanti">
+          <div class="chip" onclick="this.classList.toggle('on')">Sforzo</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Postura</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Pasto</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Stress</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Infezione</div>
+          <div class="chip" onclick="this.classList.toggle('on')">Farmaci</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RISCHIO -->
+<div class="page" id="p-rischio">
+  <div class="ptitle">Fattori di Rischio & Stile di Vita <small>Sez. 2</small></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Fattori di Rischio CV</div>
+      <div class="card-body">
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Ipertensione</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Dislipidemia</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Familiarità CVD precoce</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Sedentarietà</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Alcol &gt;14 u/sett</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Apnee notturne</div></div>
+        </div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Fumo</div>
+        <div class="frow">
+          <div class="field"><div class="flabel">Status</div><select id="f-fumo"><option value="">—</option><option>Mai</option><option>Ex-fumatore</option><option>Attuale</option></select></div>
+          <div class="field"><div class="flabel">Sig/die</div><input type="number" id="f-sig" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">Anni</div><input type="number" id="f-anni-fumo" class="mono" placeholder="—"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Stile di Vita</div>
+      <div class="card-body">
+        <div class="frow">
+          <div class="field"><div class="flabel">Att. fisica min/sett</div><input type="number" id="f-attfisica" class="mono" placeholder="150"></div>
+          <div class="field"><div class="flabel">Lavoro</div><select id="f-lavoro"><option value="">—</option><option>Sedentario</option><option>Manuale</option><option>Turni</option></select></div>
+          <div class="field"><div class="flabel">Stress 0–10</div><input type="number" id="f-stress" class="mono" placeholder="5" min="0" max="10"></div>
+          <div class="field"><div class="flabel">Sonno h/notte</div><input type="number" id="f-sonno" class="mono" placeholder="7" step="0.5"></div>
+          <div class="field"><div class="flabel">Insonnia</div><select id="f-insonnia"><option value="">—</option><option>Sì</option><option>No</option></select></div>
+        </div>
+        <hr>
+        <div class="frow">
+          <div class="field"><div class="flabel">Dieta</div><select id="f-dieta"><option value="">—</option><option>Sana</option><option>Scorretta</option></select></div>
+          <div class="field"><div class="flabel">Sale</div><select id="f-sale"><option value="">—</option><option>Sì</option><option>No</option></select></div>
+          <div class="field"><div class="flabel">Carne ×/sett</div><input type="number" id="f-carne" class="mono" placeholder="—"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- METABOLICO -->
+<div class="page" id="p-metabolico">
+  <div class="ptitle">Profilo Metabolico, Lipidico & Renale <small>Sez. 3</small></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Diabete</div>
+      <div class="card-body">
+        <div class="frow">
+          <div class="field"><div class="flabel">Tipo</div><select id="f-diab-tipo"><option value="">Assente</option><option>Tipo 1</option><option>Tipo 2</option><option>Gestazionale</option><option>Altro</option></select></div>
+          <div class="field"><div class="flabel">Anno diagnosi</div><input type="number" id="f-diab-anno" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">HbA1c %</div><input type="number" id="f-hba1c" class="mono" placeholder="—" step="0.1"></div>
+          <div class="field"><div class="flabel">Glicemia mg/dl</div><input type="number" id="f-glicemia" class="mono" placeholder="—"></div>
+        </div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Terapia diabete</div>
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Nessuna</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Orale</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Insulina</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">GLP-1</div></div>
+        </div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Complicanze</div>
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Retinopatia</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Nefropatia</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Neuropatia</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Macrovascolare</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Lipidi, Rene & Fegato</div>
+      <div class="card-body">
+        <div class="flabel" style="margin-bottom:6px">Profilo Lipidico mg/dl</div>
+        <div class="frow">
+          <div class="field"><div class="flabel">Totale</div><input type="number" id="f-col-tot" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">HDL</div><input type="number" id="f-hdl" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">LDL</div><input type="number" id="f-ldl" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">TG</div><input type="number" id="f-tg" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">Non-HDL</div><input type="number" id="f-nonhdl" class="mono" placeholder="—"></div>
+        </div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Funzione Renale</div>
+        <div class="frow">
+          <div class="field"><div class="flabel">Creat mg/dl</div><input type="number" id="f-creat" class="mono" placeholder="—" step="0.1"></div>
+          <div class="field"><div class="flabel">eGFR ml/min</div><input type="number" id="f-egfr" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">Albumin mg/24h</div><input type="number" id="f-albumin" class="mono" placeholder="—"></div>
+        </div>
+        <hr>
+        <div class="frow">
+          <div class="field"><div class="flabel">ALT</div><input type="number" id="f-alt" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">AST</div><input type="number" id="f-ast" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">GGT</div><input type="number" id="f-ggt" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">Ac. Urico mg/dl</div><input type="number" id="f-urico" class="mono" placeholder="—" step="0.1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMORBIDITÀ -->
+<div class="page" id="p-comorbidita">
+  <div class="ptitle">Comorbidità & Familiarità <small>Sez. 4</small></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Comorbidità</div>
+      <div class="card-body">
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">IMA / Rivascolarizzazione</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">FA / Aritmie</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Scompenso</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Valvulopatia</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Ictus / TIA</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">BPCO / Asma</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Neoplasia</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Autoimmune</div></div>
+        </div>
+        <hr>
+        <div class="field"><div class="flabel">Note</div><input type="text" id="f-comorbidita-note" placeholder="es. BPCO GOLD II..."></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Familiarità & Stato Funzionale</div>
+      <div class="card-body">
+        <div class="flabel" style="margin-bottom:6px">Familiarità</div>
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">CVD precoce</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Tumori</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Diabete tipo 2</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Malattie neurologiche</div></div>
+        </div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Stato Funzionale</div>
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Cadute &lt;12 mesi</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Limitazioni ADL/IADL</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Deficit cognitivo</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Ansia/Depressione</div></div>
+        </div>
+        <div class="field" style="margin-top:8px"><div class="flabel">Dolore VAS 0–10</div><input type="number" id="f-vas" class="mono" placeholder="—" min="0" max="10"></div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Vaccinazioni</div>
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Influenza</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">COVID</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Pneumo</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">HBV</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">HPV</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TERAPIE -->
+<div class="page" id="p-terapie">
+  <div class="ptitle">Terapie & Allergie <small>Sez. 5</small></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Terapia in corso</div>
+      <div class="card-body">
+        <div class="flabel" style="margin-bottom:6px">Farmaci (molecola · dose · posologia)</div>
+        <textarea id="f-terapia" placeholder="es.&#10;Ramipril 5 mg × 1/die&#10;Bisoprololo 2.5 mg × 1/die&#10;Atorvastatina 40 mg × 1/die"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Allergie & Integratori</div>
+      <div class="card-body">
+        <div class="flabel" style="margin-bottom:6px">Allergie</div>
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Nessuna</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Farmaci</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Contrasto</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Alimenti</div></div>
+        </div>
+        <div class="field" style="margin-top:8px"><div class="flabel">Dettaglio allergie</div><input type="text" id="f-allergie-note" placeholder="es. Penicillina..."></div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Integratori</div>
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Omega-3</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Vit D</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Multivitaminici</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Nessuno</div></div>
+        </div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Consenso</div>
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Consenso clinico</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Inserimento Dataset</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Uso anonimizzato</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Follow-up</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VITALI -->
+<div class="page" id="p-vitali">
+  <div class="ptitle">Vitali & Lab <small>Sez. 6</small></div>
+  <div class="card">
+    <div class="card-head">Parametri Vitali</div>
+    <div class="card-body">
+      <div class="vitals">
+        <div class="vital"><input id="v-pa" placeholder="120/80" type="text"><div class="vital-unit">mmHg</div><div class="vital-name">PA</div></div>
+        <div class="vital"><input id="v-fc" placeholder="70" type="number"><div class="vital-unit">bpm</div><div class="vital-name">FC</div></div>
+        <div class="vital"><input id="v-spo2" placeholder="98" type="number"><div class="vital-unit">%</div><div class="vital-name">SpO₂</div></div>
+        <div class="vital"><input id="v-fr" placeholder="16" type="number"><div class="vital-unit">/min</div><div class="vital-name">FR</div></div>
+        <div class="vital"><input id="v-temp" placeholder="36.6" type="number" step="0.1"><div class="vital-unit">°C</div><div class="vital-name">Temp</div></div>
+        <div class="vital"><input id="v-bmi" placeholder="—" readonly style="color:#c9a84c"><div class="vital-unit">kg/m²</div><div class="vital-name">BMI</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">Emocromo & Chimica</div>
+    <div class="card-body">
+      <div class="frow">
+        <div class="field"><div class="flabel">Hb g/dl</div><input type="number" id="f-hb" class="mono" placeholder="—" step="0.1"></div>
+        <div class="field"><div class="flabel">WBC ×10³</div><input type="number" id="f-wbc" class="mono" placeholder="—" step="0.1"></div>
+        <div class="field"><div class="flabel">PLT ×10³</div><input type="number" id="f-plt" class="mono" placeholder="—"></div>
+        <div class="field"><div class="flabel">PCR mg/L</div><input type="number" id="f-pcr" class="mono" placeholder="—" step="0.1"></div>
+        <div class="field"><div class="flabel">Na mEq/L</div><input type="number" id="f-na" class="mono" placeholder="—"></div>
+        <div class="field"><div class="flabel">K mEq/L</div><input type="number" id="f-k" class="mono" placeholder="—" step="0.1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOLLOW-UP -->
+<div class="page" id="p-followup">
+  <div class="ptitle">Follow-up 12 Mesi <small>Dataset Longitudinale</small></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Stato & Aderenza</div>
+      <div class="card-body">
+        <div class="frow">
+          <div class="field"><div class="flabel">Stato vitale</div><select id="fu-vitale"><option>Vivo</option><option>Deceduto</option></select></div>
+          <div class="field"><div class="flabel">Aderenza</div><select id="fu-aderenza"><option value="">—</option><option>Buona &gt;80%</option><option>Discreta 50–80%</option><option>Scarsa &lt;50%</option></select></div>
+          <div class="field"><div class="flabel">Benessere 0–10</div><input type="number" id="fu-benessere" class="mono" placeholder="—" min="0" max="10"></div>
+          <div class="field"><div class="flabel">Stress 0–10</div><input type="number" id="fu-stress" class="mono" placeholder="—" min="0" max="10"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Stile di Vita Attuale</div>
+      <div class="card-body">
+        <div class="frow">
+          <div class="field"><div class="flabel">Peso kg</div><input type="number" id="fu-peso" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">Fumo</div><select id="fu-fumo"><option value="">—</option><option>No</option><option>Sì</option></select></div>
+          <div class="field"><div class="flabel">Att. fisica</div><select id="fu-attfisica"><option value="">—</option><option>Nessuna</option><option>1–2×/sett</option><option>≥3×/sett</option></select></div>
+          <div class="field"><div class="flabel">Alimentazione</div><select id="fu-alimentazione"><option value="">—</option><option>Migliorata</option><option>Invariata</option><option>Peggiorata</option></select></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">Eventi Intercorsi</div>
+      <div class="card-body">
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">IMA</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Ricovero scompenso</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Aritmie</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Ictus/TIA</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Pegg. diabete</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Nuova neoplasia</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">BPCO riacutizzata</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Nessun evento</div></div>
+        </div>
+        <div class="field" style="margin-top:8px"><div class="flabel">Note</div><input type="text" id="fu-eventi-note" placeholder="—"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Esami Follow-up</div>
+      <div class="card-body">
+        <div class="frow">
+          <div class="field"><div class="flabel">HbA1c %</div><input type="number" id="fu-hba1c" class="mono" placeholder="—" step="0.1"></div>
+          <div class="field"><div class="flabel">Creatinina</div><input type="number" id="fu-creat" class="mono" placeholder="—" step="0.1"></div>
+          <div class="field"><div class="flabel">LDL mg/dl</div><input type="number" id="fu-ldl" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">PA media</div><input type="text" id="fu-pa" class="mono" placeholder="—"></div>
+          <div class="field"><div class="flabel">Peso kg</div><input type="number" id="fu-peso2" class="mono" placeholder="—"></div>
+        </div>
+        <hr>
+        <div class="flabel" style="margin-bottom:6px">Controlli eseguiti</div>
+        <div class="checks">
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Cardiologo</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Diabetologo</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">ECG</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Ecocardiogramma</div></div>
+          <div class="chk" onclick="this.classList.toggle('on')"><div class="chk-icon">✓</div><div class="chk-txt">Analisi sangue</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- REPORT PANEL -->
+<div class="rpanel" id="rpanel">
+  <div class="rpanel-head">
+    <div class="rpanel-title">Report Clinico Exordjum</div>
+    <button class="btn" onclick="toggleReport()">✕</button>
+  </div>
+  <div class="rpanel-acts">
+    <button class="btn primary" id="btn-gen" onclick="generaReport()">⚕ Genera con AI</button>
+    <button class="btn" onclick="stampaReport()">⎙ Stampa / PDF</button>
+  </div>
+  <div class="rpanel-body">
+    <div class="spin-wrap" id="spin"><div class="spinner"></div><div class="spin-txt">Analisi clinica in corso…</div></div>
+    <div class="rtext" id="rtext"></div>
+    <div class="rempty" id="rempty">Premi "Genera con AI" per creare il report del paziente.</div>
+  </div>
+</div>
+
+<div id="printzone">
+  <div class="ph"><div class="pbrand">Exordjum</div><div style="font-size:12px;color:#666;margin-top:4px" id="pr-info"></div></div>
+  <div id="pr-body"></div>
+  <div class="pfoot">Documento generato da Exordjum · Uso clinico riservato · <span id="pr-date"></span></div>
+</div>
+
+<script>
+function showPage(id,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('on'));document.getElementById(id).classList.add('on');el.classList.add('on');}
+function gv(id){const e=document.getElementById(id);return e?e.value:'';}
+function aggH(){
+  const nome=gv('f-nome')||'— Nuovo Paziente —';
+  const sesso=gv('f-sesso')||'—';
+  const bmi=gv('f-bmi')||'—';
+  const eta=document.getElementById('hdr-meta').dataset.eta||'—';
+  document.getElementById('hdr-nome').textContent=nome;
+  document.getElementById('hdr-code').textContent=gv('f-codice')||'EXO-';
+  document.getElementById('hdr-meta').textContent='Età '+eta+' · Sesso '+sesso+' · BMI '+bmi;
+}
+function calcEta(){
+  const d=new Date(gv('f-nascita'));
+  if(isNaN(d))return;
+  const t=new Date();let e=t.getFullYear()-d.getFullYear();
+  if(t<new Date(t.getFullYear(),d.getMonth(),d.getDate()))e--;
+  document.getElementById('hdr-meta').dataset.eta=e;aggH();
+}
+function calcBMI(){
+  const h=parseFloat(gv('f-altezza')),w=parseFloat(gv('f-peso'));
+  if(h>0&&w>0){
+    const bmi=(w/Math.pow(h/100,2)).toFixed(1);
+    const bsa=(0.007184*Math.pow(h,0.725)*Math.pow(w,0.425)).toFixed(2);
+    document.getElementById('f-bmi').value=bmi;
+    document.getElementById('f-bsa').value=bsa;
+    document.getElementById('v-bmi').value=bmi;
+    aggH();
+  }
+}
+function salva(){
+  try{
+    const inp={};
+    document.querySelectorAll('input[id],select[id],textarea[id]').forEach(e=>{inp[e.id]=e.value;});
+    const chips=Array.from(document.querySelectorAll('.chip')).map(c=>c.classList.contains('on')?1:0);
+    const chks=Array.from(document.querySelectorAll('.chk')).map(c=>c.classList.contains('on')?1:0);
+    const cod=gv('f-codice')||'default';
+    localStorage.setItem('exo_'+cod,JSON.stringify({inp,chips,chks}));
+    localStorage.setItem('exo_last',cod);
+    const m=document.getElementById('saved-msg');m.style.opacity='1';setTimeout(()=>m.style.opacity='0',2000);
+  }catch(e){alert('Salvataggio: apri il file in Chrome dal tuo computer.');}
+}
+function nuovoPaz(){
+  if(!confirm('Nuovo paziente? I dati non salvati andranno persi.'))return;
+  document.querySelectorAll('input[id],select[id],textarea[id]').forEach(e=>e.value='');
+  document.querySelectorAll('.chip,.chk').forEach(e=>e.classList.remove('on'));
+  document.getElementById('hdr-nome').textContent='— Nuovo Paziente —';
+  document.getElementById('hdr-code').textContent='EXO-';
+  document.getElementById('hdr-meta').textContent='Età — · Sesso — · BMI —';
+}
+window.addEventListener('load',()=>{
+  try{
+    const last=localStorage.getItem('exo_last');if(!last)return;
+    const raw=localStorage.getItem('exo_'+last);if(!raw)return;
+    const {inp,chips,chks}=JSON.parse(raw);
+    Object.keys(inp).forEach(id=>{const e=document.getElementById(id);if(e)e.value=inp[id];});
+    document.querySelectorAll('.chip').forEach((c,i)=>{if(chips[i])c.classList.add('on');});
+    document.querySelectorAll('.chk').forEach((c,i)=>{if(chks[i])c.classList.add('on');});
+    calcEta();aggH();
+  }catch(e){}
+});
+function toggleReport(){document.getElementById('rpanel').classList.toggle('on');}
+function datiPaz(){
+  const chOn=id=>{const e=document.getElementById(id);return e?Array.from(e.querySelectorAll('.chip.on')).map(c=>c.textContent).join(', ')||'Nessuno':'—';};
+  return `PAZIENTE: ${gv('f-nome')} | Cod: ${gv('f-codice')} | Sesso: ${gv('f-sesso')} | Nascita: ${gv('f-nascita')} | Altezza: ${gv('f-altezza')}cm | Peso: ${gv('f-peso')}kg | BMI: ${gv('f-bmi')} | BSA: ${gv('f-bsa')}
+MOTIVO: ${gv('f-visita')} | Esordio: ${gv('f-esordio')} | Andamento: ${gv('f-andamento')}
+Sintomi: ${chOn('chips-sintomi')} | Scatenanti: ${chOn('chips-scatenanti')}
+FUMO: ${gv('f-fumo')} ${gv('f-sig')} sig/die per ${gv('f-anni-fumo')} anni
+STILE VITA: Att.fisica ${gv('f-attfisica')} min/sett | Lavoro: ${gv('f-lavoro')} | Stress: ${gv('f-stress')}/10 | Sonno: ${gv('f-sonno')}h | Insonnia: ${gv('f-insonnia')} | Dieta: ${gv('f-dieta')} | Sale: ${gv('f-sale')}
+DIABETE: ${gv('f-diab-tipo')} (${gv('f-diab-anno')}) | HbA1c: ${gv('f-hba1c')}% | Glicemia: ${gv('f-glicemia')} mg/dl
+LIPIDI: Tot ${gv('f-col-tot')} HDL ${gv('f-hdl')} LDL ${gv('f-ldl')} TG ${gv('f-tg')} Non-HDL ${gv('f-nonhdl')} mg/dl
+RENE: Creat ${gv('f-creat')} eGFR ${gv('f-egfr')} Albumin ${gv('f-albumin')}
+FEGATO: ALT ${gv('f-alt')} AST ${gv('f-ast')} GGT ${gv('f-ggt')} Ac.Urico ${gv('f-urico')}
+VITALI: PA ${gv('v-pa')} FC ${gv('v-fc')} SpO2 ${gv('v-spo2')} FR ${gv('v-fr')} T ${gv('v-temp')}
+LAB: Hb ${gv('f-hb')} WBC ${gv('f-wbc')} PLT ${gv('f-plt')} PCR ${gv('f-pcr')} Na ${gv('f-na')} K ${gv('f-k')}
+TERAPIA: ${gv('f-terapia')}
+ALLERGIE: ${gv('f-allergie-note')} | COMORBIDITÀ: ${gv('f-comorbidita-note')}`;
+}
+let repHTML='';
+async function generaReport(){
+  const btn=document.getElementById('btn-gen');
+  const spin=document.getElementById('spin');
+  const rt=document.getElementById('rtext');
+  const re=document.getElementById('rempty');
+  btn.disabled=true;spin.classList.add('on');rt.classList.remove('on');re.style.display='none';
+  const prompt=`Sei un cardiologo specialista in prevenzione cardiovascolare. Analizza i seguenti dati e genera un Report Clinico Completo Exordjum in italiano professionale.\n\nSezioni obbligatorie:\n## 1. Sintesi Anamnestica\n## 2. Profilo di Rischio Cardiovascolare\n## 3. Analisi dei Parametri Clinici\n## 4. Valutazione Terapia in Corso\n## 5. Piano e Raccomandazioni\n## 6. Conclusione Clinica\n\nUsa linguaggio clinico preciso. Metti in **grassetto** i valori patologici. Ignora i campi vuoti (—).\n\nDATI:\n${datiPaz()}`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    const t=d.content?.map(b=>b.text||'').join('')||'Errore nella generazione.';
+    repHTML=md2h(t);rt.innerHTML=repHTML;rt.classList.add('on');
+  }catch(e){rt.innerHTML='<p style="color:#e05252">Errore connessione. Verifica internet e riprova.</p>';rt.classList.add('on');}
+  spin.classList.remove('on');btn.disabled=false;
+}
+function md2h(t){
+  return t.replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/^- (.+)$/gm,'<li>$1</li>').split('\n\n').map(p=>p.startsWith('<')?p:`<p>${p}</p>`).join('');
+}
+function stampaReport(){
+  if(!repHTML){alert('Genera prima il report AI.');return;}
+  const oggi=new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('pr-info').textContent=(gv('f-nome')||'Paziente')+(gv('f-codice')?' · '+gv('f-codice'):'')+' · '+oggi;
+  document.getElementById('pr-body').innerHTML=repHTML;
+  document.getElementById('pr-date').textContent=oggi;
+  window.print();
+}
+</script>
+</body>
+</html>
